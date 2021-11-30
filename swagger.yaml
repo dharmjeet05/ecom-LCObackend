@@ -33,11 +33,11 @@ components:
             type: http
             scheme: bearer
 
-            paths:
-    /lco:
+paths:
+    /:
         get:
             tags:
-                - String
+                - Home
             summary: returns a greet message from LCO
             responses:
                 200:
@@ -52,12 +52,28 @@ components:
                 500:
                     description: Internal server error
 
-paths:
-    /:
-        get:
+    /signup:
+        post:
             tags:
-                - Home
-            summary: returns a greet message from LCO
+                - User
+            summary: signup page
+            consumes:
+                - application/json
+            produces:
+                - application/json
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                email:
+                                    type: string
+                                password:
+                                    type: number
             responses:
                 200:
                     description: All good success
