@@ -27,8 +27,10 @@ app.use(morgan("tiny"));
 
 // routes
 const homeRoute = require("./routes/homeRoute");
+const userRoute = require("./routes/userRoute");
 
 app.use(`/api/${process.env.VERSION}`, homeRoute);
+app.use(`/api/${process.env.VERSION}`, userRoute);
 
 // export app js
 module.exports = app;
