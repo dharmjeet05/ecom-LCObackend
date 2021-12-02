@@ -4,7 +4,14 @@ const CustomError = require("../utils/customError");
 const cookieToken = require("../utils/cookieToken");
 const bigPromise = require("../middlewares/bigPromise");
 
+const fileUpload = require("express-fileupload");
+const cloudinary = require("cloudinary");
+
 exports.signup = bigPromise(async (req, res, next) => {
+    if (!req.files) {
+        return next(new CustomError("photo is required for signup", 400));
+    }
+
     // Grab all the details from request
     const { name, email, password } = req.body;
 
@@ -14,10 +21,22 @@ exports.signup = bigPromise(async (req, res, next) => {
         );
     }
 
+    let file = req.files.photo;
+
+    const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+        folder: "users",
+        width: 150,
+        crop: "scale",
+    });
+
     const user = await User.create({
         name,
         email,
         password,
+        photo: {
+            id: result.public_id,
+            secure_url: result.secure_url,
+        },
     });
 
     // cookieToken(user, res);
