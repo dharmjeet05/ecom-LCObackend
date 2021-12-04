@@ -39,22 +39,35 @@ exports.signup = bigPromise(async (req, res, next) => {
         },
     });
 
-    // cookieToken(user, res);
+    cookieToken(user, res);
+});
 
-    const token = user.getJwtToken();
+exports.login = bigPromise(async (req, res, next) => {
+    const { email, password } = req.body;
 
-    const options = {
-        expores: new Date(
-            Date.now() + process.env.COOKIE_TIME * 24 * 60 * 60 * 1000
-        ),
-        httpOnly: true,
-    };
+    // check for presence of email and password
+    if (!email || !password) {
+        return next(new CustomError("please provide email and password", 400));
+    }
 
-    user.password = undefined;
+    // get user from DB
+    const user = await User.findOne({ email }).select("+password");
 
-    res.status(200).cookie("token", token, options).json({
-        success: true,
-        token,
-        user,
-    });
+    // check that user is exist on db or not
+    if (!user) {
+        return next(
+            new CustomError("Email or password does not match or exist", 400)
+        );
+    }
+
+    // check password is correct or not
+    const isPasswordCorrect = await user.isValidPassword(password);
+    if (!isPasswordCorrect) {
+        return next(
+            new CustomError("Email or password does not match or exist", 400)
+        );
+    }
+
+    // provide token to the user
+    cookieToken(user, res);
 });
