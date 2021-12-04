@@ -1,7 +1,9 @@
 const User = require("../models/UserModel");
 
+// utils
 const CustomError = require("../utils/customError");
-const cookieToken = require("../utils/cookieToken");
+
+// middleware
 const bigPromise = require("../middlewares/bigPromise");
 
 const fileUpload = require("express-fileupload");
@@ -39,7 +41,22 @@ exports.signup = bigPromise(async (req, res, next) => {
         },
     });
 
-    cookieToken(user, res);
+    const token = user.getJwtToken();
+
+    const options = {
+        expires: new Date(
+            Date.now() + process.env.COOKIE_TIME * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true,
+    };
+
+    user.password = undefined;
+
+    res.status(200).cookie("token", token, options).json({
+        success: true,
+        token,
+        user,
+    });
 });
 
 exports.login = bigPromise(async (req, res, next) => {
@@ -69,5 +86,20 @@ exports.login = bigPromise(async (req, res, next) => {
     }
 
     // provide token to the user
-    cookieToken(user, res);
+    const token = user.getJwtToken();
+
+    const options = {
+        expires: new Date(
+            Date.now() + process.env.COOKIE_TIME * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true,
+    };
+
+    user.password = undefined;
+
+    res.status(200).cookie("token", token, options).json({
+        success: true,
+        token,
+        user,
+    });
 });
