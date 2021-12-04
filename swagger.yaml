@@ -172,3 +172,27 @@ paths:
                     description: Bad Request
                 500:
                     description: Internal server error
+
+    /logout:
+        get:
+            tags:
+                - User
+            summary: logout page
+            produces:
+                - application/json
+            responses:
+                200:
+                    description: All good success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    success:
+                                        type: string
+                                    message:
+                                        type: string
+                400:
+                    description: Bad Request
+                500:
+                    description: Internal server error
