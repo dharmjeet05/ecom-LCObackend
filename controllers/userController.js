@@ -219,3 +219,13 @@ exports.passwordReset = bigPromise(async (req, res, next) => {
         user,
     });
 });
+
+exports.getLoggedInUserDetails = bigPromise(async (req, res, next) => {
+    // grab the user
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+});
