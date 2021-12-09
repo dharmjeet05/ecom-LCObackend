@@ -2,6 +2,7 @@ const User = require("../models/UserModel");
 
 // utils
 const CustomError = require("../utils/customError");
+const mailHelper = require("../utils/emailHelper");
 
 // middleware
 const bigPromise = require("../middlewares/bigPromise");
@@ -114,4 +115,43 @@ exports.logout = bigPromise(async (req, res, next) => {
         success: true,
         message: "Logout success",
     });
+});
+
+exports.forgotPassword = bigPromise(async (req, res, next) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        return next(new CustomError("Email not found as registered", 400));
+    }
+
+    const forgotToken = user.getForgotPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    const myUrl = `${req.protocol}://${req.get(
+        "host"
+    )}/password/reset/${forgotToken}`;
+
+    const message = `Copy paste this link in your URL and hit enter \n\n ${myUrl}`;
+
+    try {
+        await mailHelper({
+            email: user.email,
+            subject: "Ecom - Password reset email",
+            message,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Email sent successfully",
+        });
+    } catch (error) {
+        user.forgotPasswordToken = undefined;
+        user.forgotPasswordExpiry = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new CustomError(error.message, 500));
+    }
 });
